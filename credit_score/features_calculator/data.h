@@ -1,9 +1,18 @@
+#pragma once
+
 #include <string>
+#include <unordered_map>
 
 struct TDate {
     size_t Day;
     size_t Month;
     size_t Year;
+
+    bool IsUnknown;
+
+public:
+    TDate();
+    TDate(const std::string& str);
 };
 
 enum EContractType {
@@ -84,13 +93,13 @@ struct TAccount {
     float NextPayment; // Размер следующего платежа. Сумма в рублях по курсу ЦБ РФ
     float CurrentBalanceAmount; // Общая выплаченная сумма, включая сумму основного долга, проценты, пени и штрафы. Сумма в рублях по курсу ЦБ РФ
 
-    size_t CurrentDelq; // Текущее количество дней просрочки
-    size_t TtlDelq_5; // Количество просрочек до 5 дней
-    size_t TtlDelq_5_29; // Количество просрочек от 5 до 29 дней
-    size_t TtlDelq_30_59; // Количество просрочек от 30 до 59 дней
-    size_t TtlDelq_60_89; // Количество просрочек от 60 до 89 дней
-    size_t TtlDelq_30; // Количество просрочек до 30 дней
-    size_t TtlDelq_90_Plus; // Количество просрочек 90+ дней
+    int CurrentDelq; // Текущее количество дней просрочки
+    int TtlDelq_5; // Количество просрочек до 5 дней
+    int TtlDelq_5_29; // Количество просрочек от 5 до 29 дней
+    int TtlDelq_30_59; // Количество просрочек от 30 до 59 дней
+    int TtlDelq_60_89; // Количество просрочек от 60 до 89 дней
+    int TtlDelq_30; // Количество просрочек до 30 дней
+    int TtlDelq_90_Plus; // Количество просрочек 90+ дней
 
     TDate PaymentStringStart; // Дата начала строки PaymentString_84M
     
@@ -117,10 +126,32 @@ struct TAccount {
     ERelationship Relationship; // Тип отношения к договору
 
 public:
+    std::vector<float> NumericFields; // Здесь продублированы все числовые поля
+
+public:
+    static const size_t INPUT_FIELDS_COUNT = 28; // Количество полей в строке во входных данных
+
+public:
     TAccount();
     TAccount(const std::string& str);
+
+private:
+    EContractType ContractTypeFromString(const std::string& str) const;
+    EContractStatus ContractStatusFromString(const std::string& str) const;
+    ECurrency CurrencyFromString(const std::string& str) const;
+    EPaymentFrequency PaymentFrequencyFromString(const std::string& str) const;
+    ERelationship RelationshipFromString(const std::string& str) const;
 };
 
 struct TData {
+    // id -> vector of accounts
+    typedef std::unordered_map<size_t, std::vector<TAccount>> THashData;
+    THashData Data;
+    
+    // it -> target
+    std::unordered_map<size_t, float> LearnTargets;
+    std::unordered_map<size_t, float> TestTargets;
 
+public:
+    void LoadFromCSVFiles(const std::string& accountsFile, const std::string& customersFile);
 };
