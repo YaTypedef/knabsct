@@ -1,6 +1,6 @@
-#include <limits>
 #include <vector>
 #include <iostream>
+#include <cmath>
 
 #include "calculator.h"
 
@@ -8,6 +8,8 @@ using std::vector;
 using std::cerr;
 using std::cout;
 using std::endl;
+
+const float EPS = 0.000001;
 
 void TFactorsCalculator::CalculateFactors(
     const std::vector<TAccount>& accounts,
@@ -100,13 +102,17 @@ void TFactorsCalculator::AppendNumericMeans(
          ++fieldIndex)
     {
         float sum = 0.0;
+        size_t counter = 0;
         for (size_t accountIndex = 0;
              accountIndex < accounts.size();
              ++accountIndex) 
         {
-            sum += accounts[accountIndex].NumericFields[fieldIndex];
+            if (accounts[accountIndex].NumericFields[fieldIndex] > -EPS) {
+                sum += accounts[accountIndex].NumericFields[fieldIndex];
+                ++counter;
+            }
         }
-        factors->push_back(sum / (0.01 + accounts.size()));
+        factors->push_back(sum / (0.01 + counter));
     }
 }
 
@@ -124,17 +130,21 @@ void TFactorsCalculator::AppendNumericDispersions(
     {
         float sum = 0.0;
         float squaresSum = 0.0;
+        size_t counter = 0;
         for (size_t accountIndex = 0;
              accountIndex < accounts.size();
              ++accountIndex) 
         {
-            size_t item = accounts[accountIndex].NumericFields[fieldIndex];
-            sum += item;
-            squaresSum += item * item;
+            float item = accounts[accountIndex].NumericFields[fieldIndex];
+            if (item > -EPS) {
+                sum += item;
+                squaresSum += item * item;
+                ++counter;
+            }
         }
-        sum /= (0.01 + accounts.size());
-        squaresSum /= (0.01 + accounts.size());
-        factors->push_back(squaresSum - sum * sum);
+        sum /= (0.01 + counter);
+        squaresSum /= (0.01 + counter);
+        factors->push_back(pow(squaresSum - sum * sum, 0.5f));
     }
 }
 
@@ -155,7 +165,9 @@ void TFactorsCalculator::AppendNumericMaximums(
              accountIndex < accounts.size();
              ++accountIndex) 
         {
-            if (accounts[accountIndex].NumericFields[fieldIndex] > max) {
+            if (accounts[accountIndex].NumericFields[fieldIndex] > max &&
+                accounts[accountIndex].NumericFields[fieldIndex] > -EPS)
+            {
                 max = accounts[accountIndex].NumericFields[fieldIndex];
             }
         }
@@ -175,16 +187,43 @@ void TFactorsCalculator::AppendNumericMinimums(
          fieldIndex < accounts[0].NumericFields.size();
          ++fieldIndex)
     {
-        float min = std::numeric_limits<float>().max();
+        float min = 100000; // sorry
         for (size_t accountIndex = 0;
              accountIndex < accounts.size();
              ++accountIndex) 
         {
-            if (accounts[accountIndex].NumericFields[fieldIndex] < min) {
+            if (accounts[accountIndex].NumericFields[fieldIndex] < min &&
+                accounts[accountIndex].NumericFields[fieldIndex] > -EPS)
+            {
                 min = accounts[accountIndex].NumericFields[fieldIndex];
             }
         }
         factors->push_back(min);
+    }
+}
+
+void TFactorsCalculator::AppendNumericUnknownCount(
+    const std::vector<TAccount>& accounts,
+    std::vector<float>* factors) const
+{
+    if (accounts.empty()) {
+        return;
+    }
+
+    for (size_t fieldIndex = 0;
+         fieldIndex < accounts[0].NumericFields.size();
+         ++fieldIndex)
+    {
+        size_t counter = 0;
+        for (size_t accountIndex = 0;
+             accountIndex < accounts.size();
+             ++accountIndex) 
+        {
+            if (accounts[accountIndex].NumericFields[fieldIndex] < -EPS) {
+                ++counter;
+            }
+        }
+        factors->push_back(counter);
     }
 }
 

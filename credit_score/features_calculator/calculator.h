@@ -28,4 +28,5 @@ private:
     void AppendNumericDispersions(const std::vector<TAccount>& accounts, std::vector<float>* factors) const;
     void AppendNumericMaximums(const std::vector<TAccount>& accounts, std::vector<float>* factors) const;
     void AppendNumericMinimums(const std::vector<TAccount>& accounts, std::vector<float>* factors) const;
+    void AppendNumericUnknownCount(const std::vector<TAccount>& accounts, std::vector<float>* factors) const;
 };
