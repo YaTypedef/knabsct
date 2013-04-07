@@ -26,3 +26,6 @@ obj/
 [Dd]ebug*/
 [Rr]elease*/
 Ankh.NoLoad
+
+#result files
+merchant_*.txt
