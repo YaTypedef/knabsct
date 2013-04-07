@@ -192,6 +192,7 @@ void TMccCalculator::PrintShortToStream(std::ostream& os) const {
         << TransactionStat.Count << "\t" << TransactionStat.OverallAmount << "\t"
         << static_cast<double>(TransactionStat.OverallAmount) / TransactionStat.Count << "\t"
         << TransactionStat.MinimumAmount << "\t" << TransactionStat.MaximumAmount << "\t"
+        << static_cast<double>(TransactionStat.OnlineCount) / TransactionStat.Count << "\t"
         << GetMccDescription() << std::endl;
 }
 
@@ -368,6 +369,7 @@ void TMerchantStatBundle::AddRecord(const TTransaction& transaction) {
 void PrintShortHeader(std::ostream& os) {
     os << "MCC" << "\t" << "Count" << "\t" << "OverallAmount" 
         << "\t" << "AverageAmount" << "\t" << "MinAmount" << "\t" << "MaxAmount" 
+        << "\t" << "OnlinePercent"
         << "\t" << "Description" << std::endl;
 }
 
