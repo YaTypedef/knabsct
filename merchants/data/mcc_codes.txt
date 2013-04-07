@@ -794,7 +794,7 @@
 5718	Fireplace, Fireplace Screens, and Accessories Stores
 5719	Miscellaneous Home Furnishing Specialty Stores
 5722	Household Appliance Stores
-5732	Electronic Sales
+5732	Electronics Stores
 5733	Music Stores, Musical Instruments, Piano Sheet Music
 5734	Computer Software Stores
 5735	Record Shops
