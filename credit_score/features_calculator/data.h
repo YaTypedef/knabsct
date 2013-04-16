@@ -13,6 +13,8 @@ struct TDate {
 public:
     TDate();
     TDate(const std::string& str);
+
+    size_t AsNumber() const;
 };
 
 enum EContractType {
@@ -86,12 +88,12 @@ struct TAccount {
     TDate FinalPaymentDate; // Дата финального платежа (плановая)
     TDate FactCloseDate; // Дата закрытия счета (фактическая)
     
-    float CreditLimit; // Кредитный лимит. Сумма в рублях по курсу ЦБ РФ
+    double CreditLimit; // Кредитный лимит. Сумма в рублях по курсу ЦБ РФ
     ECurrency Currency; // Валюта договора
 
-    float Outstanding; // Оставшаяся непогашенная задолженность. Сумма в рублях по курсу ЦБ РФ
-    float NextPayment; // Размер следующего платежа. Сумма в рублях по курсу ЦБ РФ
-    float CurrentBalanceAmount; // Общая выплаченная сумма, включая сумму основного долга, проценты, пени и штрафы. Сумма в рублях по курсу ЦБ РФ
+    double Outstanding; // Оставшаяся непогашенная задолженность. Сумма в рублях по курсу ЦБ РФ
+    double NextPayment; // Размер следующего платежа. Сумма в рублях по курсу ЦБ РФ
+    double CurrentBalanceAmount; // Общая выплаченная сумма, включая сумму основного долга, проценты, пени и штрафы. Сумма в рублях по курсу ЦБ РФ
 
     int CurrentDelq; // Текущее количество дней просрочки
     int TtlDelq_5; // Количество просрочек до 5 дней
@@ -117,16 +119,47 @@ struct TAccount {
     //  9 – Безнадёжный долг/ передано на взыскание/ пропущенный платеж
     std::string PaymentString_84M;
 
-    float DelqBalance; // Текущая просроченная задолженность. Сумма в рублях по курсу ЦБ РФ
-    float MaxDelqBalance; // Максимальный объем просроченной задолженности. Сумма в рублях по курсу ЦБ РФ
-    float InterestRate; // Процентная ставка по кредиту
+    double DelqBalance; // Текущая просроченная задолженность. Сумма в рублях по курсу ЦБ РФ
+    double MaxDelqBalance; // Максимальный объем просроченной задолженности. Сумма в рублях по курсу ЦБ РФ
+    double InterestRate; // Процентная ставка по кредиту
 
     EPaymentFrequency PaymentFrequency; // Частота платежей
 
     ERelationship Relationship; // Тип отношения к договору
 
 public:
-    std::vector<float> NumericFields; // Здесь продублированы все числовые поля
+    // Дополнительные поля
+    size_t ContractDuration;
+    size_t ContractFactDuration;
+    size_t PaymentStringSize;
+    size_t PaymentString0Count;
+    size_t PaymentString1Count;
+    size_t PaymentString2Count;
+    size_t PaymentString3Count;
+    size_t PaymentString4Count;
+    size_t PaymentString5Count;
+    size_t PaymentString7Count;
+    size_t PaymentString8Count;
+    size_t PaymentString9Count;
+    size_t PaymentStringACount;
+    size_t PaymentStringXCount;
+
+    double PaymentString0Pos;
+    double PaymentString1Pos;
+    double PaymentString2Pos;
+    double PaymentString3Pos;
+    double PaymentString4Pos;
+    double PaymentString5Pos;
+    double PaymentString7Pos;
+    double PaymentString8Pos;
+    double PaymentString9Pos;
+    double PaymentStringAPos;
+    double PaymentStringXPos;
+
+	size_t UnknownFieldsCount;
+
+public:
+    std::vector<double> NumericFields; // Здесь продублированы все числовые поля
 
 public:
     static const size_t INPUT_FIELDS_COUNT = 28; // Количество полей в строке во входных данных
@@ -149,8 +182,8 @@ struct TData {
     THashData Data;
     
     // it -> target
-    std::unordered_map<size_t, float> LearnTargets;
-    std::unordered_map<size_t, float> TestTargets;
+    std::unordered_map<size_t, double> LearnTargets;
+    std::unordered_map<size_t, double> TestTargets;
 
 public:
     void LoadFromCSVFiles(const std::string& accountsFile, const std::string& customersFile);

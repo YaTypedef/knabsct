@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <cmath>
 
 #include "data.h"
 #include "common.h"
@@ -12,6 +13,8 @@ using std::vector;
 using std::string;
 using std::stringstream;
 using std::getline;
+using std::reverse;
+using std::count;
 using std::cerr;
 using std::endl;
 
@@ -21,6 +24,7 @@ TDate::TDate()
 }
 
 TDate::TDate(const std::string& str) {
+    IsUnknown = false;
     if (str.size() != 9 ||
         !(str[0] >= '0' && str[0] <= '9') ||
         !(str[1] >= '0' && str[1] <= '9') ||
@@ -33,7 +37,7 @@ TDate::TDate(const std::string& str) {
         !(str[8] >= '0' && str[8] <= '9')) {
         IsUnknown = true;
         
-        if (!str.empty() && str != "-1") {
+        if (!str.empty() && str != "-1000000") {
             cerr << "Unknown date: " << str << endl;
         }
         return;
@@ -75,6 +79,49 @@ TDate::TDate(const std::string& str) {
     Year = atoi(str.substr(5, 4).c_str());
 }
 
+size_t  TDate::AsNumber() const {
+    if (IsUnknown) {
+        return 0;
+    }
+    size_t answer = Day;
+
+    if (Month == 2) {
+        answer += 31;
+    }
+    if (Month == 3) {
+        answer += 28;
+    }
+    if (Month == 4) {
+        answer += 31;
+    }
+    if (Month == 5) {
+        answer += 30;
+    }
+    if (Month == 6) {
+        answer += 31;
+    }
+    if (Month == 7) {
+        answer += 30;
+    }
+    if (Month == 8) {
+        answer += 31;
+    }
+    if (Month == 9) {
+        answer += 31;
+    }
+    if (Month == 10) {
+        answer += 30;
+    }
+    if (Month == 11) {
+        answer += 31;
+    }
+    if (Month == 12) {
+        answer += 30;
+    }
+    answer += Year * 365; // Забиваем на високосные
+    return answer; 
+}
+
 
 TAccount::TAccount() {
 }
@@ -87,9 +134,12 @@ TAccount::TAccount(const string& str) {
         cerr << "Wrong input line: " << str << endl;
         return;
     }
+
+	UnknownFieldsCount = 0;
     for (size_t index = 0; index < items.size(); ++index) {
         if (items[index].empty()) {
-            items[index] = "-1";
+            items[index] = "-1000000";
+			++UnknownFieldsCount;
         }
     }
 
@@ -131,6 +181,62 @@ TAccount::TAccount(const string& str) {
     PaymentFrequency = PaymentFrequencyFromString(items[26]);
     Relationship = RelationshipFromString(items[27]);
 
+    // Дополнительные поля
+    ContractDuration = FinalPaymentDate.AsNumber() - OpenDate.AsNumber();
+    ContractFactDuration = FactCloseDate.AsNumber() - OpenDate.AsNumber();
+    PaymentStringSize = PaymentString_84M.size();
+    PaymentString0Count = count(PaymentString_84M.begin(), PaymentString_84M.end(), '0');
+    PaymentString1Count = count(PaymentString_84M.begin(), PaymentString_84M.end(), '1');
+    PaymentString2Count = count(PaymentString_84M.begin(), PaymentString_84M.end(), '2');
+    PaymentString3Count = count(PaymentString_84M.begin(), PaymentString_84M.end(), '3');
+    PaymentString4Count = count(PaymentString_84M.begin(), PaymentString_84M.end(), '4');
+    PaymentString5Count = count(PaymentString_84M.begin(), PaymentString_84M.end(), '5');
+    PaymentString7Count = count(PaymentString_84M.begin(), PaymentString_84M.end(), '7');
+    PaymentString8Count = count(PaymentString_84M.begin(), PaymentString_84M.end(), '8');
+    PaymentString9Count = count(PaymentString_84M.begin(), PaymentString_84M.end(), '9');
+    PaymentStringACount = count(PaymentString_84M.begin(), PaymentString_84M.end(), 'A');
+    PaymentStringXCount = count(PaymentString_84M.begin(), PaymentString_84M.end(), 'X');
+
+    PaymentString0Pos = 0;
+    PaymentString1Pos = 0;
+    PaymentString2Pos = 0;
+    PaymentString3Pos = 0;
+    PaymentString4Pos = 0;
+    PaymentString5Pos = 0;
+    PaymentString7Pos = 0;
+    PaymentString8Pos = 0;
+    PaymentString9Pos = 0;
+    PaymentStringAPos = 0;
+    PaymentStringXPos = 0;
+    for (size_t i = 0; i < PaymentString_84M.size(); ++i) {
+        char c = PaymentString_84M[i];
+        if (c == '0') {
+            PaymentString0Pos += i / (1.0f + PaymentString0Count);
+        } else if (c == '1') {
+            PaymentString1Pos += i / (1.0f + PaymentString1Count);
+        } else if (c == '2') {
+            PaymentString2Pos += i / (1.0f + PaymentString2Count);
+        } else if (c == '3') {
+            PaymentString3Pos += i / (1.0f + PaymentString3Count);
+        } else if (c == '4') {
+            PaymentString4Pos += i / (1.0f + PaymentString4Count);
+        } else if (c == '5') {
+            PaymentString5Pos += i / (1.0f + PaymentString5Count);
+        } else if (c == '7') {
+            PaymentString7Pos += i / (1.0f + PaymentString7Count);
+        } else if (c == '8') {
+            PaymentString8Pos += i / (1.0f + PaymentString8Count);
+        } else if (c == '9') {
+            PaymentString9Pos += i / (1.0f + PaymentString9Count);
+        } else if (c == 'A') {
+            PaymentStringAPos += i / (1.0f + PaymentStringACount);
+        } else if (c == 'X') {
+            PaymentStringXPos += i / (1.0f + PaymentStringXCount);
+        }
+    }
+
+    const static double EPS = 0.000001;
+
     NumericFields.push_back(BureauCd);
     NumericFields.push_back(CreditLimit);
     NumericFields.push_back(Outstanding);
@@ -146,6 +252,63 @@ TAccount::TAccount(const string& str) {
     NumericFields.push_back(DelqBalance);
     NumericFields.push_back(MaxDelqBalance);
     NumericFields.push_back(InterestRate);
+    NumericFields.push_back(PaymentStringSize);
+    NumericFields.push_back(PaymentString0Count);
+    NumericFields.push_back(PaymentString1Count);
+    NumericFields.push_back(PaymentString2Count);
+    NumericFields.push_back(PaymentString3Count);
+    NumericFields.push_back(PaymentString4Count);
+    NumericFields.push_back(PaymentString5Count);
+    NumericFields.push_back(PaymentString7Count);
+    NumericFields.push_back(PaymentString8Count);
+    NumericFields.push_back(PaymentString9Count);
+    NumericFields.push_back(PaymentStringACount);
+    NumericFields.push_back(PaymentStringXCount);
+
+    NumericFields.push_back(PaymentString0Pos);
+    NumericFields.push_back(PaymentString1Pos);
+    NumericFields.push_back(PaymentString2Pos);
+    NumericFields.push_back(PaymentString3Pos);
+    NumericFields.push_back(PaymentString4Pos);
+    NumericFields.push_back(PaymentString5Pos);
+    NumericFields.push_back(PaymentString7Pos);
+    NumericFields.push_back(PaymentString8Pos);
+    NumericFields.push_back(PaymentString9Pos);
+    NumericFields.push_back(PaymentStringAPos);
+    NumericFields.push_back(PaymentStringXPos);
+
+    NumericFields.push_back(BkiRequestDate.AsNumber());
+    NumericFields.push_back(InfConfirmDate.AsNumber());
+    NumericFields.push_back(OpenDate.AsNumber());
+    NumericFields.push_back(FinalPaymentDate.AsNumber());
+    NumericFields.push_back(FactCloseDate.AsNumber());
+    NumericFields.push_back(PaymentStringStart.AsNumber());
+
+    NumericFields.push_back(ContractDuration);
+    NumericFields.push_back(ContractFactDuration);
+
+    // string covering
+    double days = 1.0f;
+    if (PaymentFrequency == PF_TWO_WEEKS) {
+        days = 14;
+    } else if (PaymentFrequency == PF_MONTH) {
+        days = 30;
+    } else if (PaymentFrequency == PF_TWO_MONTHS) {
+        days = 60;
+    } else if (PaymentFrequency == PF_THREE_MONTHS) {
+        days = 90;
+    } else if (PaymentFrequency == PF_FOUR_MONTHS) {
+        days = 120;
+    } else if (PaymentFrequency == PF_SIX_MONTHS) {
+        days = 185;
+    } else if (PaymentFrequency == PF_YEAR) {
+        days = 365;
+    }
+    NumericFields.push_back(PaymentString_84M.size() * days / (1.0 + FactCloseDate.AsNumber() - OpenDate.AsNumber()));
+	NumericFields.push_back(UnknownFieldsCount);
+	//NumericFields.push_back(NextPayment / (1.0 + Outstanding));
+	//NumericFields.push_back(DelqBalance / (1.0 + CurrentBalanceAmount));
+	//NumericFields.push_back(CreditLimit / (1.0 + FinalPaymentDate.AsNumber() - OpenDate.AsNumber()));
 }
 
 EContractType TAccount::ContractTypeFromString(const std::string& str) const {
@@ -230,9 +393,10 @@ void TData::LoadFromCSVFiles(const std::string& accountsFile, const std::string&
             cerr << "Wrong input line: " << line << endl;
             continue;
         }
-        float id = atoi(items[0].c_str());
+        double id = atoi(items[0].c_str());
+
         if (items[2] == "train") {
-            float target = atoi(items[1].c_str());
+            double target = atoi(items[1].c_str());
             LearnTargets[id] = target;
         } else if (items[2] == "test") {
             TestTargets[id] = 0.0;
